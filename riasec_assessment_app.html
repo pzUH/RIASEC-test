@@ -1,0 +1,1629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>RIASEC Assessment App</title>
+
+    <!-- CDN Dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #311042 100%);
+            --glass-bg: rgba(255, 255, 255, 0.08);
+            --glass-border: rgba(255, 255, 255, 0.22);
+            --glass-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.5);
+            --accent-cyan: #38bdf8;
+            --accent-pink: #f472b6;
+            --accent-purple: #c084fc;
+            --text-main: #ffffff;
+            --text-muted: #cbd5e1;
+            --nav-height: 65px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            height: 100dvh;
+            overflow: hidden;
+            position: fixed;
+        }
+
+        body {
+            background: var(--bg-gradient);
+            background-attachment: fixed;
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 12px;
+        }
+
+        .ambient-glow {
+            position: fixed;
+            width: 350px;
+            height: 350px;
+            border-radius: 50%;
+            filter: blur(100px);
+            z-index: 0;
+            pointer-events: none;
+        }
+        .glow-1 { top: -60px; left: -60px; background: rgba(56, 189, 248, 0.35); }
+        .glow-2 { bottom: -60px; right: -60px; background: rgba(244, 114, 182, 0.35); }
+
+        .app-container {
+            width: min(92vw, 720px);
+            height: 100%;
+            max-height: 850px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid var(--glass-border);
+            border-radius: 28px;
+            box-shadow: var(--glass-shadow);
+            z-index: 1;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        #preloader {
+            position: absolute;
+            inset: 0;
+            background: #0f172a;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.6s ease, visibility 0.6s;
+        }
+
+        .logo-loader {
+            width: 80px;
+            height: 80px;
+            background: rgba(255, 255, 255, 0.95);
+            border: 2px solid var(--glass-border);
+            border-radius: 22px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            padding: 0;
+            box-shadow: 0 0 35px rgba(56, 189, 248, 0.5);
+            animation: pulseGlow 2s infinite alternate;
+        }
+
+        .logo-loader img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+            transform: scale(1.08);
+            display: block;
+        }
+
+        @keyframes pulseGlow {
+            0% { transform: scale(0.95); box-shadow: 0 0 15px rgba(56, 189, 248, 0.3); }
+            100% { transform: scale(1.05); box-shadow: 0 0 35px rgba(244, 114, 182, 0.6); }
+        }
+
+        .view-section {
+            display: none;
+            padding: 24px;
+            padding-bottom: calc(var(--nav-height) + 20px);
+            height: 100%;
+            overflow-y: auto;
+            animation: fadeIn 0.4s ease-in-out forwards;
+        }
+
+        .view-section.active { 
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Fixed header/footer layout specifically for Information view */
+        #view-info {
+            overflow-y: hidden;
+            padding-bottom: calc(var(--nav-height) + 14px);
+        }
+
+        .info-header {
+            flex-shrink: 0;
+        }
+
+        .info-scroll-area {
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+            margin-top: 12px;
+            padding-right: 4px;
+        }
+
+        .info-footer {
+            flex-shrink: 0;
+            margin-top: 10px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1, h2, h3 { font-weight: 700; letter-spacing: -0.5px; }
+        .subtitle { color: var(--text-muted); font-size: 0.9rem; margin-top: 4px; }
+
+        .btn {
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid var(--glass-border);
+            color: #ffffff;
+            padding: 14px 20px;
+            border-radius: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-decoration: none;
+            width: 100%;
+            box-sizing: border-box;
+            font-size: 0.95rem;
+        }
+
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+        }
+
+        .btn:active { transform: translateY(0); }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+            border: none;
+            box-shadow: 0 4px 15px rgba(56, 189, 248, 0.3);
+            font-weight: 700;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #f43f5e, #e11d48);
+            border: none;
+            box-shadow: 0 4px 15px rgba(244, 63, 94, 0.3);
+            font-weight: 700;
+        }
+
+        .btn-sm {
+            padding: 8px 12px;
+            font-size: 0.82rem;
+            border-radius: 10px;
+            width: auto;
+        }
+
+        .resume-banner {
+            background: rgba(56, 189, 248, 0.15);
+            border: 1px solid var(--accent-cyan);
+            border-radius: 16px;
+            padding: 14px 18px;
+            margin-top: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        @media (min-width: 480px) {
+            .menu-grid {
+                grid-template-columns: repeat(5, minmax(0, 1fr));
+            }
+        }
+
+        .menu-tile {
+            flex-direction: column;
+            padding: 12px 6px;
+            border-radius: 16px;
+            font-size: 0.72rem;
+            gap: 6px;
+            text-align: center;
+            min-height: 68px;
+            line-height: 1.15;
+            min-width: 0;
+        }
+
+        .menu-tile i {
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+        }
+
+        .input-group {
+            margin-bottom: 16px;
+            text-align: left;
+        }
+        .input-group label {
+            display: block;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+        .input-field {
+            width: 100%;
+            padding: 14px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            color: #fff;
+            outline: none;
+            font-size: 1rem;
+        }
+        .input-field:focus { border-color: var(--accent-cyan); }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+            margin: 15px 0 25px 0;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--accent-cyan), var(--accent-pink));
+            transition: width 0.3s ease;
+        }
+
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: 100%;
+        }
+
+        .option-btn {
+            color: #ffffff;
+            padding: 16px 20px;
+            border-radius: 16px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .option-btn.opt-sa {
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.25), rgba(16, 185, 129, 0.4));
+            border: 1px solid #22c55e;
+        }
+        .option-btn.opt-sa:hover {
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.45), rgba(16, 185, 129, 0.6));
+            box-shadow: 0 6px 18px rgba(34, 197, 94, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .option-btn.opt-a {
+            background: linear-gradient(135deg, rgba(132, 204, 22, 0.2), rgba(34, 197, 94, 0.3));
+            border: 1px solid #84cc16;
+        }
+        .option-btn.opt-a:hover {
+            background: linear-gradient(135deg, rgba(132, 204, 22, 0.4), rgba(34, 197, 94, 0.5));
+            transform: translateY(-2px);
+        }
+
+        .option-btn.opt-n {
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .option-btn.opt-n:hover {
+            background: rgba(255, 255, 255, 0.22);
+            transform: translateY(-2px);
+        }
+
+        .option-btn.opt-d {
+            background: linear-gradient(135deg, rgba(249, 115, 22, 0.25), rgba(239, 68, 68, 0.35));
+            border: 1px solid #f97316;
+        }
+        .option-btn.opt-d:hover {
+            background: linear-gradient(135deg, rgba(249, 115, 22, 0.45), rgba(239, 68, 68, 0.55));
+            box-shadow: 0 6px 18px rgba(249, 115, 22, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .result-layout {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+        @media (min-width: 600px) {
+            .result-layout { grid-template-columns: 1fr 1fr; align-items: center; }
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 320px;
+            margin: 0 auto;
+            aspect-ratio: 1;
+        }
+
+        .admin-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .stat-card {
+            background: rgba(0, 0, 0, 0.25);
+            border: 1px solid var(--glass-border);
+            padding: 12px;
+            border-radius: 14px;
+            text-align: center;
+        }
+        .stat-card .val { font-size: 1.4rem; font-weight: 800; color: var(--accent-cyan); }
+        .stat-card .lbl { font-size: 0.75rem; color: var(--text-muted); }
+
+        .table-wrapper {
+            overflow-x: auto;
+            border-radius: 14px;
+            border: 1px solid var(--glass-border);
+            background: rgba(0, 0, 0, 0.25);
+            margin-top: 10px;
+            max-height: 280px;
+            overflow-y: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.85rem;
+        }
+
+        th, td {
+            padding: 10px 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            white-space: nowrap;
+        }
+
+        th { background: rgba(255, 255, 255, 0.08); font-weight: 700; color: var(--accent-cyan); }
+
+        .app-nav {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: var(--nav-height);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-top: 1px solid var(--glass-border);
+            z-index: 100;
+        }
+        .nav-item {
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            cursor: pointer;
+            text-align: center;
+            transition: color 0.2s;
+            user-select: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+        }
+        .nav-item.active { color: var(--accent-cyan); font-weight: bold; }
+        .nav-item i { width: 20px; height: 20px; }
+
+        /* Information Clean Pagination Bar */
+        .info-page { display: none; font-size: 0.88rem; color: var(--text-muted); line-height: 1.6; }
+        .info-page.active { display: block; }
+        
+        .info-pagination {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--glass-border);
+            border-radius: 14px;
+            padding: 8px 12px;
+        }
+        .info-page-indicator {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--accent-cyan);
+        }
+
+        .info-card {
+            background: rgba(0, 0, 0, 0.25);
+            border: 1px solid var(--glass-border);
+            border-radius: 14px;
+            padding: 14px;
+            margin-bottom: 12px;
+        }
+        .info-card h4 { color: var(--accent-cyan); margin-bottom: 6px; font-size: 0.95rem; }
+
+        /* Contact Action Cards */
+        .contact-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        /* Main Page Intro & Video Card */
+        .home-intro-card {
+            background: rgba(0, 0, 0, 0.25);
+            border: 1px solid var(--glass-border);
+            border-radius: 18px;
+            padding: 16px;
+            margin-top: 16px;
+        }
+        .video-wrapper {
+            position: relative;
+            width: 100%;
+            padding-bottom: 56.25%;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            background: #000;
+            margin-bottom: 8px;
+            cursor: pointer;
+        }
+        .video-wrapper iframe,
+        .video-thumbnail-box {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 0;
+        }
+        .video-thumbnail-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.85;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+        .video-wrapper:hover .video-thumbnail-box img {
+            transform: scale(1.03);
+            opacity: 1;
+        }
+        .video-play-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, rgba(15, 23, 42, 0.85) 0%, rgba(15, 23, 42, 0.2) 55%, transparent 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .video-play-btn {
+            width: 54px;
+            height: 54px;
+            border-radius: 50%;
+            background: rgba(239, 68, 68, 0.92);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 25px rgba(239, 68, 68, 0.5);
+            transition: transform 0.2s ease, background 0.2s ease;
+        }
+        .video-wrapper:hover .video-play-btn {
+            transform: scale(1.1);
+            background: #dc2626;
+        }
+        .video-caption-badge {
+            position: absolute;
+            bottom: 10px;
+            left: 12px;
+            right: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: #ffffff;
+            text-shadow: 0 1px 4px rgba(0,0,0,0.8);
+        }
+        .video-fallback-bar {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 12px;
+        }
+        .video-fallback-link {
+            font-size: 0.75rem;
+            color: var(--accent-cyan);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            opacity: 0.85;
+            transition: opacity 0.2s;
+        }
+        .video-fallback-link:hover {
+            opacity: 1;
+            text-decoration: underline;
+        }
+        .home-intro-header {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .home-intro-desc {
+            font-size: 0.85rem;
+            color: #e2e8f0;
+            line-height: 1.6;
+            text-align: left;
+            margin-bottom: 12px;
+        }
+        .riasec-pills-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        @media (min-width: 520px) {
+            .riasec-pills-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        .riasec-pill {
+            background: rgba(255, 255, 255, 0.07);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: 10px;
+            padding: 7px 10px;
+            font-size: 0.78rem;
+            color: #f1f5f9;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .riasec-pill span.letter {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            border-radius: 6px;
+            background: rgba(56, 189, 248, 0.2);
+            color: var(--accent-cyan);
+            font-weight: 800;
+            font-size: 0.75rem;
+            flex-shrink: 0;
+        }
+        .home-intro-footer {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+            padding-top: 8px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .contact-card {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 16px;
+            text-align: center;
+            text-decoration: none;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.2s ease;
+        }
+        .contact-card:hover {
+            background: rgba(255, 255, 255, 0.18);
+            transform: translateY(-3px);
+            border-color: var(--accent-cyan);
+        }
+        .contact-card i { width: 28px; height: 28px; color: var(--accent-cyan); }
+        .contact-card.wa i { color: #25D366; }
+        .contact-card.ig i { color: #E1306C; }
+        .contact-card.fb i { color: #1877F2; }
+
+        #toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid var(--accent-cyan);
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 20px;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            z-index: 2000;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            font-size: 0.88rem;
+            font-weight: 600;
+        }
+        #toast.show { transform: translateX(-50%) translateY(0); }
+    </style>
+</head>
+<body>
+
+    <div class="ambient-glow glow-1"></div>
+    <div class="ambient-glow glow-2"></div>
+    <div id="toast">Notification message</div>
+
+    <div class="app-container">
+        
+        <!-- Preloader -->
+        <div id="preloader">
+            <div class="logo-loader">
+                <img src="https://kadowisudaku.com/wp-content/uploads/2016/11/Logo-Universitas-Teknologi-Yogyakarta-UTY.png" alt="Logo Universitas Teknologi Yogyakarta" onerror="this.onerror=null; this.src='https://placehold.co/80x80/0f172a/38bdf8?text=UTY';">
+            </div>
+            <p style="margin-top: 15px; color: var(--text-muted); font-size: 0.9rem;">Initializing App...</p>
+        </div>
+
+        <!-- VIEW: MAIN MENU -->
+        <div id="view-menu" class="view-section active">
+            <div style="text-align: center; margin-top: 6px;">
+                <div class="logo-loader" style="margin: 0 auto 12px auto; width: 64px; height: 64px;">
+                    <img src="https://kadowisudaku.com/wp-content/uploads/2016/11/Logo-Universitas-Teknologi-Yogyakarta-UTY.png" alt="Logo Universitas Teknologi Yogyakarta" onerror="this.onerror=null; this.src='https://placehold.co/64x64/0f172a/38bdf8?text=UTY';">
+                </div>
+                <h1>RIASEC Assessment</h1>
+                <p class="subtitle">Discover your vocational personality & career path</p>
+            </div>
+
+            <div class="menu-grid">
+                <button class="btn btn-primary menu-tile" onclick="openRegistration()">
+                    <i data-lucide="play-circle"></i><span>Start</span>
+                </button>
+                <button class="btn menu-tile" onclick="showView('view-info')">
+                    <i data-lucide="help-circle"></i><span>Info</span>
+                </button>
+                <button class="btn menu-tile" onclick="showView('view-contact')">
+                    <i data-lucide="mail"></i><span>Contact</span>
+                </button>
+                <button class="btn menu-tile" onclick="showView('view-references')">
+                    <i data-lucide="book-open"></i><span>Refs</span>
+                </button>
+                <button class="btn menu-tile" onclick="showView('view-about')">
+                    <i data-lucide="info"></i><span>About</span>
+                </button>
+            </div>
+
+            <div id="resume-banner-container"></div>
+
+            <div class="home-intro-card">
+                <div class="video-wrapper" id="riasec-video-container" onclick="playRiasecVideo()">
+                    <div class="video-thumbnail-box">
+                        <img src="https://i.ytimg.com/vi/POBx_s-X6cQ/hqdefault.jpg" alt="Holland Codes simply explained (RIASEC Model)">
+                        <div class="video-play-overlay">
+                            <div class="video-play-btn">
+                                <i data-lucide="play" style="width: 24px; height: 24px; fill: #ffffff; margin-left: 2px;"></i>
+                            </div>
+                        </div>
+                        <div class="video-caption-badge">
+                            <span>Holland Codes Simply Explained (RIASEC)</span>
+                            <span style="background: rgba(0,0,0,0.6); padding: 2px 7px; border-radius: 6px; font-size: 0.7rem;">Watch Video</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="video-fallback-bar">
+                    <a href="https://www.youtube.com/watch?v=POBx_s-X6cQ" target="_blank" rel="noopener noreferrer" class="video-fallback-link">
+                        Watch directly on YouTube <i data-lucide="external-link" style="width: 12px; height: 12px;"></i>
+                    </a>
+                </div>
+
+                <div class="home-intro-header">
+                    <i data-lucide="compass" style="width: 17px; height: 17px; color: var(--accent-cyan);"></i>
+                    <span>What is RIASEC?</span>
+                </div>
+                <p class="home-intro-desc">
+                    Developed by psychologist <strong>Dr. John Holland</strong>, the RIASEC model categorizes vocational interests into six distinct personality dimensions:
+                </p>
+
+                <div class="riasec-pills-grid">
+                    <div class="riasec-pill"><span class="letter">R</span> <span><strong>Realistic</strong> · Doers</span></div>
+                    <div class="riasec-pill"><span class="letter">I</span> <span><strong>Investigative</strong> · Thinkers</span></div>
+                    <div class="riasec-pill"><span class="letter">A</span> <span><strong>Artistic</strong> · Creators</span></div>
+                    <div class="riasec-pill"><span class="letter">S</span> <span><strong>Social</strong> · Helpers</span></div>
+                    <div class="riasec-pill"><span class="letter">E</span> <span><strong>Enterprising</strong> · Persuaders</span></div>
+                    <div class="riasec-pill"><span class="letter">C</span> <span><strong>Conventional</strong> · Organizers</span></div>
+                </div>
+
+                <p class="home-intro-footer">
+                    Answer 12 quick statements to uncover your top 3-letter <strong>Holland Code</strong> and matching entry-level career paths.
+                </p>
+            </div>
+        </div>
+
+        <!-- VIEW: REGISTRATION -->
+        <div id="view-register" class="view-section">
+            <h2>User Registration</h2>
+            <p class="subtitle">Enter details to begin assessment</p>
+            <form id="regForm" onsubmit="startTest(event)" style="margin-top: 25px;">
+                <div class="input-group">
+                    <label>Full Name</label>
+                    <input type="text" id="userName" class="input-field" placeholder="e.g. Jane Doe" required>
+                </div>
+                <div class="input-group">
+                    <label>Age</label>
+                    <input type="number" id="userAge" class="input-field" placeholder="e.g. 24" required min="10" max="100">
+                </div>
+                <button type="submit" class="btn btn-primary" style="margin-top: 20px;">
+                    Begin Test <i data-lucide="arrow-right"></i>
+                </button>
+                <button type="button" class="btn" style="margin-top: 10px;" onclick="showView('view-menu')">Cancel</button>
+            </form>
+        </div>
+
+        <!-- VIEW: TEST ENGINE -->
+        <div id="view-test" class="view-section">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span id="q-counter" style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">Question 1/12</span>
+                <span id="q-category" style="font-size: 0.85rem; color: var(--accent-cyan); font-weight: 700;">---</span>
+            </div>
+            
+            <div class="progress-bar-container">
+                <div id="progress-fill" class="progress-fill"></div>
+            </div>
+
+            <div style="flex: 1; display: flex; flex-direction: column; justify-content: center;">
+                <h3 id="question-text" style="margin-bottom: 25px; line-height: 1.4; font-size: 1.15rem; text-align: center; color: #ffffff;">Question text goes here...</h3>
+                <div id="options-container" class="options-list"></div>
+            </div>
+        </div>
+
+        <!-- VIEW: RESULTS HUB -->
+        <div id="view-results" class="view-section">
+            <div id="capture-card" style="padding: 10px; border-radius: 16px;">
+                <h2 style="text-align: center;">Your Holland Code</h2>
+                <p class="subtitle" id="user-display" style="text-align: center;">Results for Anonymous</p>
+                
+                <div style="text-align: center; margin: 10px 0;">
+                    <span id="primary-code" style="font-size: 2.5rem; font-weight: 800; background: linear-gradient(135deg, var(--accent-cyan), var(--accent-pink)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">---</span>
+                </div>
+
+                <div class="result-layout">
+                    <div class="chart-container">
+                        <canvas id="riasecRadarChart"></canvas>
+                    </div>
+
+                    <div style="background: rgba(0,0,0,0.2); padding: 14px; border-radius: 14px; border: 1px solid var(--glass-border);">
+                        <h4 style="color: var(--accent-cyan); margin-bottom: 6px; font-size: 0.95rem;">Entry-Level Fresh Grad Paths</h4>
+                        <div id="recommendation-text" style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.5;">---</div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-top: 15px;">
+                <button class="btn btn-primary" onclick="shareOrDownload()">
+                    <i data-lucide="share-2"></i> Share / Save Image
+                </button>
+                <button class="btn" onclick="showView('view-menu')">Return Home</button>
+            </div>
+        </div>
+
+        <!-- VIEW: ADMIN PANEL -->
+        <div id="view-admin" class="view-section">
+            <div id="admin-login-box">
+                <h2>Admin Authentication</h2>
+                <p class="subtitle">Access management dashboard</p>
+                <form onsubmit="handleAdminLogin(event)" style="margin-top: 20px;">
+                    <div class="input-group">
+                        <label>Username</label>
+                        <input type="text" id="adminUser" class="input-field" placeholder="Username" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Password</label>
+                        <input type="password" id="adminPass" class="input-field" placeholder="Password" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="margin-top: 15px;">
+                        <i data-lucide="lock"></i> Log In
+                    </button>
+                </form>
+            </div>
+
+            <div id="admin-panel-box" style="display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <h2>Admin Dashboard</h2>
+                    <button class="btn btn-sm" onclick="handleAdminLogout()">Logout</button>
+                </div>
+
+                <div class="admin-stats">
+                    <div class="stat-card">
+                        <div class="val" id="stat-total">0</div>
+                        <div class="lbl">Total Takers</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="val" id="stat-topcode">---</div>
+                        <div class="lbl">Top Code</div>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+                    <input type="text" id="adminSearch" class="input-field" placeholder="Search by name or code..." oninput="renderAdminTable()" style="padding: 8px 12px; font-size: 0.85rem;">
+                    <button class="btn btn-primary btn-sm" onclick="exportAdminXLSX()">
+                        <i data-lucide="download"></i> Export XLSX
+                    </button>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                    <span id="sheet-sync-status" style="font-size: 0.75rem; color: var(--text-muted);">Cloud Sync: Ready</span>
+                    <button class="btn btn-sm" onclick="syncFromGoogleSheet(true)" style="padding: 5px 10px; font-size: 0.75rem;">
+                        <i data-lucide="refresh-cw" style="width: 14px; height: 14px;"></i> Sync Sheet
+                    </button>
+                </div>
+
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox" id="selectAll" onchange="toggleSelectAll(this)"></th>
+                                <th>Name</th>
+                                <th>Age</th>
+                                <th>Code</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-table-body"></tbody>
+                    </table>
+                </div>
+
+                <div style="display: flex; gap: 10px; margin-top: 12px;">
+                    <button class="btn btn-danger btn-sm" onclick="deleteSelectedRecords()">Delete Selected</button>
+                    <button class="btn btn-danger btn-sm" onclick="deleteAllRecords()">Delete All</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW: INFORMATION (PAGINATED WITH FIXED HEADER & FOOTER) -->
+        <div id="view-info" class="view-section">
+            <div class="info-header">
+                <h2>RIASEC Knowledge Base</h2>
+                <p class="subtitle">Theory, hexagram model, and personality definitions</p>
+            </div>
+
+            <div class="info-scroll-area" id="info-scroll-area">
+                <!-- Page 1: Core Theory -->
+                <div id="info-p1" class="info-page active">
+                    <div class="info-card">
+                        <h4>John Holland's Vocational Theory</h4>
+                        <p>Developed by Dr. John Holland in 1959, the theory posits that people searching for career satisfaction perform best when working in environments that match their personal orientation.</p>
+                    </div>
+                    <div class="info-card">
+                        <h4>4 Key Theoretical Premises</h4>
+                        <p>1. People are categorized into 6 personality types.<br>
+                           2. Environments are classified into 6 corresponding work environments.<br>
+                           3. People search for environments where they can exercise skills and values.<br>
+                           4. Behavior is determined by an interaction between personality and environment.</p>
+                    </div>
+                    <div class="info-card">
+                        <h4>Hexagonal Model Rules</h4>
+                        <p>Calculated adjacent types on the hexagon (e.g., Realistic & Investigative) share similar characteristics, whereas opposite types (e.g., Realistic & Social) differ significantly in values and work preferences.</p>
+                    </div>
+                </div>
+
+                <!-- Page 2: R & I Types -->
+                <div id="info-p2" class="info-page">
+                    <div class="info-card">
+                        <h4>Realistic (R) - "The Doers"</h4>
+                        <p>Focuses on concrete, practical tasks involving physical tools, machines, animals, or outdoor activities. Values tangible outcomes over abstract discussion.</p>
+                    </div>
+                    <div class="info-card">
+                        <h4>Investigative (I) - "The Thinkers"</h4>
+                        <p>Driven by analytical, intellectual, and scientific inquiry. Prefers observing, researching, understanding complex theories, and solving abstract problems.</p>
+                    </div>
+                </div>
+
+                <!-- Page 3: A & S Types -->
+                <div id="info-p3" class="info-page">
+                    <div class="info-card">
+                        <h4>Artistic (A) - "The Creators"</h4>
+                        <p>Thrives in flexible, open environments allowing imaginative expression, design, writing, or performance. Highly values originality and independence.</p>
+                    </div>
+                    <div class="info-card">
+                        <h4>Social (S) - "The Helpers"</h4>
+                        <p>Empathetic individuals dedicated to teaching, counseling, healing, and fostering human connection. Prefers interpersonal cooperation over machine work.</p>
+                    </div>
+                </div>
+
+                <!-- Page 4: E & C Types -->
+                <div id="info-p4" class="info-page">
+                    <div class="info-card">
+                        <h4>Enterprising (E) - "The Persuaders"</h4>
+                        <p>Ambitious leaders naturally suited for management, sales, business growth, and public influence. Energized by setting goals and persuading others.</p>
+                    </div>
+                    <div class="info-card">
+                        <h4>Conventional (C) - "The Organizers"</h4>
+                        <p>Detail-oriented professionals who excel with data structures, accounting, schedules, and systematic procedures. Values efficiency and precision.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-footer">
+                <!-- Previous / Next Controls -->
+                <div class="info-pagination">
+                    <button id="btn-info-prev" class="btn btn-sm" onclick="changeInfoPage(-1)" style="opacity: 0.4; pointer-events: none;">
+                        <i data-lucide="chevron-left"></i> Previous
+                    </button>
+                    <span id="info-page-num" class="info-page-indicator">Page 1 of 4</span>
+                    <button id="btn-info-next" class="btn btn-sm btn-primary" onclick="changeInfoPage(1)">
+                        Next <i data-lucide="chevron-right"></i>
+                    </button>
+                </div>
+
+                <button class="btn" style="margin-top: 10px;" onclick="showView('view-menu')">Back to Menu</button>
+            </div>
+        </div>
+
+        <!-- VIEW: CONTACT (CLICKABLE DUMMY LINKS) -->
+        <div id="view-contact" class="view-section">
+            <h2>Contact Us</h2>
+            <p class="subtitle">Reach out through any of our channels</p>
+
+            <div class="contact-grid">
+                <!-- WhatsApp Link -->
+                <a href="https://wa.me/15550192834?text=Hello%20RIASEC%20Support" target="_blank" class="contact-card wa">
+                    <i data-lucide="message-square"></i>
+                    <div>
+                        <strong style="font-size: 0.9rem;">WhatsApp</strong><br>
+                        <span style="font-size: 0.75rem; color: var(--text-muted);">+1 (555) 019-2834</span>
+                    </div>
+                </a>
+
+                <!-- Email Link -->
+                <a href="mailto:support@riasec-app.com?subject=RIASEC%20App%20Inquiry" class="contact-card">
+                    <i data-lucide="mail"></i>
+                    <div>
+                        <strong style="font-size: 0.9rem;">Email</strong><br>
+                        <span style="font-size: 0.75rem; color: var(--text-muted);">support@riasec-app.com</span>
+                    </div>
+                </a>
+
+                <!-- Instagram Link -->
+                <a href="https://instagram.com" target="_blank" class="contact-card ig">
+                    <i data-lucide="instagram"></i>
+                    <div>
+                        <strong style="font-size: 0.9rem;">Instagram</strong><br>
+                        <span style="font-size: 0.75rem; color: var(--text-muted);">@riasec_official</span>
+                    </div>
+                </a>
+
+                <!-- Facebook Link -->
+                <a href="https://facebook.com" target="_blank" class="contact-card fb">
+                    <i data-lucide="facebook"></i>
+                    <div>
+                        <strong style="font-size: 0.9rem;">Facebook</strong><br>
+                        <span style="font-size: 0.75rem; color: var(--text-muted);">RIASEC Assessment</span>
+                    </div>
+                </a>
+            </div>
+
+            <button class="btn" style="margin-top: auto;" onclick="showView('view-menu')">Back to Menu</button>
+        </div>
+
+        <!-- VIEW: REFERENCES -->
+        <div id="view-references" class="view-section">
+            <h2>References</h2>
+            <p class="subtitle">Academic Foundations</p>
+            <div style="margin-top: 20px; font-size: 0.88rem; color: var(--text-muted); line-height: 1.6;">
+                <p>• Holland, J. L. (1997). <em>Making vocational choices: A theory of vocational personalities and work environments</em> (3rd ed.). Psychological Assessment Resources.</p><br>
+                <p>• Nauta, M. M. (2010). The development, evolution, and status of Holland's theory of vocational personalities: Reflection and future directions. <em>Journal of Career Development</em>, 37(1), 11-22.</p>
+            </div>
+            <button class="btn" style="margin-top: auto;" onclick="showView('view-menu')">Back</button>
+        </div>
+
+        <!-- VIEW: ABOUT -->
+        <div id="view-about" class="view-section">
+            <h2>About</h2>
+            <p class="subtitle">App Information</p>
+            <p style="margin-top: 20px; color: var(--text-muted); line-height: 1.6;">RIASEC Assessment App v2.7<br>Single-file client application featuring glassmorphism design, Lucide icons, paginated information view, and direct social contact cards.</p>
+            <button class="btn" style="margin-top: auto;" onclick="showView('view-menu')">Back</button>
+        </div>
+
+        <!-- Pinned Navigation Bar -->
+        <nav class="app-nav">
+            <div class="nav-item active" id="nav-home" onclick="showView('view-menu')">
+                <i data-lucide="layout-grid"></i><span>Home</span>
+            </div>
+            <div class="nav-item" id="nav-test" onclick="openRegistration()">
+                <i data-lucide="clipboard-list"></i><span>Test</span>
+            </div>
+            <div class="nav-item" id="nav-admin" onclick="showView('view-admin')">
+                <i data-lucide="shield-check"></i><span>Admin</span>
+            </div>
+            <div class="nav-item" id="nav-about" onclick="showView('view-about')">
+                <i data-lucide="info"></i><span>About</span>
+            </div>
+        </nav>
+
+    </div>
+
+    <script>
+        const questions = [
+            { text: "I like to work with tools, machinery, or animals.", type: "R" },
+            { text: "I enjoy repairing mechanical or electrical devices.", type: "R" },
+            { text: "I like solving complex math or scientific problems.", type: "I" },
+            { text: "I enjoy researching and analyzing data.", type: "I" },
+            { text: "I like expressing myself through art, music, or writing.", type: "A" },
+            { text: "I prefer unstructured work environments that allow creativity.", type: "A" },
+            { text: "I enjoy teaching, training, or helping people.", type: "S" },
+            { text: "I like working in teams to solve social issues.", type: "S" },
+            { text: "I like leading teams and pitching new business ideas.", type: "E" },
+            { text: "I enjoy negotiating and influencing others.", type: "E" },
+            { text: "I prefer working with structured data and clear guidelines.", type: "C" },
+            { text: "I like organizing records, files, and spreadsheets.", type: "C" }
+        ];
+
+        const careerDatabase = {
+            R: { name: "Realistic", focus: "hands-on technical execution & field operations" },
+            I: { name: "Investigative", focus: "analytical research & data-driven problem solving" },
+            A: { name: "Artistic", focus: "creative design, storytelling & visual expression" },
+            S: { name: "Social", focus: "people-centered support, training & collaboration" },
+            E: { name: "Enterprising", focus: "business growth, pitching & team coordination" },
+            C: { name: "Conventional", focus: "structured workflows, accuracy & data organization" }
+        };
+
+        const freshGradClusterMatrix = {
+            "RI": { label: "Technical & Analytical", roles: ["Junior QA Specialist", "Field Support Technician", "Lab Assistant"] },
+            "RA": { label: "Hands-On & Creative", roles: ["Junior CAD Drafter", "Technical Illustrator Trainee", "Junior Model Maker"] },
+            "RS": { label: "Practical & Supportive", roles: ["Assistant Athletic Trainer", "Field Operations Assistant", "Site Safety Coordinator"] },
+            "RE": { label: "Technical & Commercial", roles: ["Technical Sales Development Rep (SDR)", "Field Service Associate", "Junior Estimator"] },
+            "RC": { label: "Practical & Structured", roles: ["Junior Operations Coordinator", "Logistics Assistant", "IT Support Specialist"] },
+            "IA": { label: "Analytical & Creative", roles: ["Associate UX/UI Researcher", "Junior Content Analyst", "Technical Writer Trainee"] },
+            "IS": { label: "Analytical & Supportive", roles: ["Research Assistant", "Health Data Analyst", "Associate Program Evaluator"] },
+            "IE": { label: "Analytical & Business", roles: ["Junior Market Research Analyst", "Business Analyst Associate", "Associate Consultant"] },
+            "IC": { label: "Analytical & Structured", roles: ["Junior Data Analyst", "Audit Associate", "Graduate Compliance Assistant"] },
+            "AS": { label: "Creative & Supportive", roles: ["Junior Communications Specialist", "Content Associate", "Academic / Art Assistant"] },
+            "AE": { label: "Creative & Business", roles: ["Marketing Coordinator", "Junior Copywriter", "Social Media Associate"] },
+            "AC": { label: "Creative & Structured", roles: ["Junior Instructional Designer", "Desktop Publisher", "Editorial Assistant"] },
+            "SE": { label: "Supportive & Business", roles: ["HR & Talent Acquisition Associate", "Client Success Coordinator", "Event & Community Coordinator"] },
+            "SC": { label: "Supportive & Structured", roles: ["Academic Program Coordinator", "Healthcare Admin Assistant", "Employee Relations Associate"] },
+            "EC": { label: "Business & Structured", roles: ["Junior Financial Operations Analyst", "Account Coordinator", "Junior Project Coordinator"] }
+        };
+
+        let currentQuestionIndex = 0;
+        let userData = { name: '', age: 0 };
+        let scores = { R: 0, I: 0, A: 0, S: 0, E: 0, C: 0 };
+        let radarChart = null;
+        let isAdminLoggedIn = false;
+        let currentInfoPage = 1;
+        const totalInfoPages = 4;
+
+        const ADMIN_USER = "admin";
+        const ADMIN_PASS = "admin123";
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbya4LMPiMD-zY8hO5IxRQwCGoIgAfHBxmU7WL1vDHXrHWqd7oDecRvjDww9mJG1eoKS/exec";
+
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                const loader = document.getElementById('preloader');
+                loader.style.opacity = '0';
+                setTimeout(() => loader.style.display = 'none', 600);
+            }, 800);
+
+            checkResumeBanner();
+            lucide.createIcons();
+        });
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.innerText = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        function playRiasecVideo() {
+            const isWebHosted = (window.location.protocol === 'http:' || window.location.protocol === 'https:') && window.location.hostname !== '';
+            if (isWebHosted) {
+                const container = document.getElementById('riasec-video-container');
+                container.onclick = null;
+                container.style.cursor = 'default';
+                container.innerHTML = `
+                    <iframe 
+                        src="https://www.youtube.com/embed/POBx_s-X6cQ?autoplay=1" 
+                        title="Holland Codes simply explained (RIASEC Model)" 
+                        frameborder="0" 
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                        referrerpolicy="strict-origin-when-cross-origin" 
+                        allowfullscreen>
+                    </iframe>
+                `;
+            } else {
+                window.open('https://www.youtube.com/watch?v=POBx_s-X6cQ', '_blank', 'noopener,noreferrer');
+            }
+        }
+
+        function showView(viewId) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            
+            document.getElementById(viewId).classList.add('active');
+
+            if (viewId === 'view-menu') document.getElementById('nav-home').classList.add('active');
+            if (viewId === 'view-register' || viewId === 'view-test') document.getElementById('nav-test').classList.add('active');
+            if (viewId === 'view-admin') document.getElementById('nav-admin').classList.add('active');
+            if (viewId === 'view-about') document.getElementById('nav-about').classList.add('active');
+
+            if (viewId === 'view-admin' && isAdminLoggedIn) {
+                renderAdminTable();
+            }
+        }
+
+        function changeInfoPage(direction) {
+            currentInfoPage += direction;
+            if (currentInfoPage < 1) currentInfoPage = 1;
+            if (currentInfoPage > totalInfoPages) currentInfoPage = totalInfoPages;
+
+            document.querySelectorAll('.info-page').forEach(p => p.classList.remove('active'));
+            document.getElementById(`info-p${currentInfoPage}`).classList.add('active');
+
+            const scrollArea = document.getElementById('info-scroll-area');
+            if (scrollArea) scrollArea.scrollTop = 0;
+
+            document.getElementById('info-page-num').innerText = `Page ${currentInfoPage} of ${totalInfoPages}`;
+
+            document.getElementById('btn-info-prev').style.opacity = currentInfoPage === 1 ? '0.4' : '1';
+            document.getElementById('btn-info-prev').style.pointerEvents = currentInfoPage === 1 ? 'none' : 'auto';
+            
+            document.getElementById('btn-info-next').style.opacity = currentInfoPage === totalInfoPages ? '0.4' : '1';
+            document.getElementById('btn-info-next').style.pointerEvents = currentInfoPage === totalInfoPages ? 'none' : 'auto';
+        }
+
+        function openRegistration() {
+            showView('view-register');
+        }
+
+        function checkResumeBanner() {
+            const activeTest = localStorage.getItem('riasec_active_session');
+            const container = document.getElementById('resume-banner-container');
+            
+            if (activeTest) {
+                const parsed = JSON.parse(activeTest);
+                container.innerHTML = `
+                    <div class="resume-banner">
+                        <div style="font-size: 0.82rem;">
+                            <strong>Unfinished Test Found</strong><br>
+                            <span style="color: var(--text-muted);">${parsed.user.name} (Q${parsed.index + 1}/${questions.length})</span>
+                        </div>
+                        <button class="btn btn-primary btn-sm" onclick="resumeTest()">Resume</button>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = '';
+            }
+        }
+
+        function startTest(e) {
+            e.preventDefault();
+            userData.name = document.getElementById('userName').value;
+            userData.age = document.getElementById('userAge').value;
+            
+            scores = { R: 0, I: 0, A: 0, S: 0, E: 0, C: 0 };
+            currentQuestionIndex = 0;
+            
+            saveActiveSession();
+            showView('view-test');
+            renderQuestion();
+        }
+
+        function saveActiveSession() {
+            const sessionData = { user: userData, scores: scores, index: currentQuestionIndex };
+            localStorage.setItem('riasec_active_session', JSON.stringify(sessionData));
+        }
+
+        function resumeTest() {
+            const activeTest = JSON.parse(localStorage.getItem('riasec_active_session'));
+            if (activeTest) {
+                userData = activeTest.user;
+                scores = activeTest.scores;
+                currentQuestionIndex = activeTest.index;
+                showView('view-test');
+                renderQuestion();
+            }
+        }
+
+        function renderQuestion() {
+            const q = questions[currentQuestionIndex];
+            document.getElementById('q-counter').innerText = `Question ${currentQuestionIndex + 1}/${questions.length}`;
+            document.getElementById('q-category').innerText = `Type: ${careerDatabase[q.type].name}`;
+            document.getElementById('question-text').innerText = q.text;
+            
+            const progressRatio = ((currentQuestionIndex) / questions.length) * 100;
+            document.getElementById('progress-fill').style.width = `${progressRatio}%`;
+
+            const container = document.getElementById('options-container');
+            container.innerHTML = '';
+            
+            const options = [
+                { label: "Strongly Agree", val: 3, icon: "check-check", class: "opt-sa" },
+                { label: "Agree", val: 2, icon: "check", class: "opt-a" },
+                { label: "Neutral", val: 1, icon: "minus", class: "opt-n" },
+                { label: "Disagree", val: 0, icon: "x", class: "opt-d" }
+            ];
+
+            options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = `option-btn ${opt.class}`;
+                btn.innerHTML = `<span>${opt.label}</span> <i data-lucide="${opt.icon}"></i>`;
+                btn.onclick = () => selectOption(q.type, opt.val);
+                container.appendChild(btn);
+            });
+
+            lucide.createIcons();
+        }
+
+        function selectOption(type, value) {
+            scores[type] += value;
+            currentQuestionIndex++;
+
+            if (currentQuestionIndex < questions.length) {
+                saveActiveSession();
+                renderQuestion();
+            } else {
+                finishTest();
+            }
+        }
+
+        function finishTest() {
+            localStorage.removeItem('riasec_active_session');
+            checkResumeBanner();
+
+            const sorted = Object.entries(scores).sort((a,b) => b[1] - a[1]);
+            const topCode = sorted.slice(0, 3).map(item => item[0]).join('');
+
+            const topCategories = topCode.split('');
+            const pairKey = topCategories[0] + topCategories[1];
+            const reversePairKey = topCategories[1] + topCategories[0];
+            const cluster = freshGradClusterMatrix[pairKey] || freshGradClusterMatrix[reversePairKey] || freshGradClusterMatrix["IC"];
+            const suggestedCareers = cluster.roles.join(', ');
+
+            const submission = {
+                id: Date.now(),
+                user: userData,
+                scores: scores,
+                code: topCode,
+                careers: suggestedCareers,
+                date: new Date().toLocaleDateString()
+            };
+
+            let submissions = JSON.parse(localStorage.getItem('riasec_submissions') || '[]');
+            submissions.push(submission);
+            localStorage.setItem('riasec_submissions', JSON.stringify(submissions));
+
+            // Send assessment result to Google Sheets in background
+            syncToGoogleSheet("create", {
+                id: submission.id,
+                name: submission.user.name,
+                age: submission.user.age,
+                code: submission.code,
+                careers: submission.careers,
+                date: submission.date,
+                R: submission.scores.R,
+                I: submission.scores.I,
+                A: submission.scores.A,
+                S: submission.scores.S,
+                E: submission.scores.E,
+                C: submission.scores.C
+            });
+
+            confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
+
+            displayResults(submission);
+            showView('view-results');
+        }
+
+        function displayResults(data) {
+            document.getElementById('user-display').innerText = `Results for ${data.user.name} (${data.user.age} y/o)`;
+            document.getElementById('primary-code').innerText = data.code;
+
+            const topCategories = data.code.split('');
+            const pairKey = topCategories[0] + topCategories[1];
+            const reversePairKey = topCategories[1] + topCategories[0];
+            const cluster = freshGradClusterMatrix[pairKey] || freshGradClusterMatrix[reversePairKey] || freshGradClusterMatrix["IC"];
+            const tertiaryTrait = careerDatabase[topCategories[2]];
+
+            const rolesList = cluster.roles.map(role => `• <strong>${role}</strong>`).join('<br>');
+            const recHTML = `
+                <div style="margin-bottom: 6px; color: #ffffff;"><strong>${cluster.label} (${topCategories[0]}+${topCategories[1]})</strong></div>
+                ${rolesList}
+                <div style="margin-top: 8px; padding-top: 6px; border-top: 1px solid rgba(255,255,255,0.12); font-size: 0.78rem;">
+                    <em>Tertiary modifier (${tertiaryTrait.name}):</em> Emphasizes ${tertiaryTrait.focus}.
+                </div>
+            `;
+            document.getElementById('recommendation-text').innerHTML = recHTML;
+
+            renderHexagonChart(data.scores);
+        }
+
+        function renderHexagonChart(scoreData) {
+            const ctx = document.getElementById('riasecRadarChart').getContext('2d');
+            
+            if (radarChart) {
+                radarChart.destroy();
+            }
+
+            const targetScores = [scoreData.R, scoreData.I, scoreData.A, scoreData.S, scoreData.E, scoreData.C];
+
+            radarChart = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ['Realistic', 'Investigative', 'Artistic', 'Social', 'Enterprising', 'Conventional'],
+                    datasets: [{
+                        label: 'Score',
+                        data: [0, 0, 0, 0, 0, 0],
+                        backgroundColor: 'rgba(56, 189, 248, 0.35)',
+                        borderColor: '#38bdf8',
+                        borderWidth: 2.5,
+                        pointBackgroundColor: '#f472b6',
+                        pointBorderColor: '#ffffff',
+                        pointRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: false,
+                    scales: {
+                        r: {
+                            angleLines: { color: 'rgba(255, 255, 255, 0.25)' },
+                            grid: { color: 'rgba(255, 255, 255, 0.2)' },
+                            pointLabels: {
+                                color: '#ffffff',
+                                font: { family: 'Plus Jakarta Sans', size: 10, weight: '600' }
+                            },
+                            ticks: { display: false, stepSize: 2 },
+                            suggestedMin: 0,
+                            suggestedMax: 6
+                        }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+
+            let startTime = null;
+            const duration = 1200;
+
+            function animateOutward(timestamp) {
+                if (!startTime) startTime = timestamp;
+                const elapsed = timestamp - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                
+                const easeProgress = 1 - Math.pow(1 - progress, 3);
+
+                radarChart.data.datasets[0].data = targetScores.map(score => score * easeProgress);
+                radarChart.update('none');
+
+                if (progress < 1) {
+                    requestAnimationFrame(animateOutward);
+                }
+            }
+
+            requestAnimationFrame(animateOutward);
+        }
+
+        function handleAdminLogin(e) {
+            e.preventDefault();
+            const u = document.getElementById('adminUser').value.trim();
+            const p = document.getElementById('adminPass').value.trim();
+
+            if (u === ADMIN_USER && p === ADMIN_PASS) {
+                isAdminLoggedIn = true;
+                document.getElementById('admin-login-box').style.display = 'none';
+                document.getElementById('admin-panel-box').style.display = 'block';
+                renderAdminTable();
+                syncFromGoogleSheet(false);
+                showToast("Logged in successfully");
+            } else {
+                showToast("Invalid credentials!");
+            }
+        }
+
+        function handleAdminLogout() {
+            isAdminLoggedIn = false;
+            document.getElementById('admin-login-box').style.display = 'block';
+            document.getElementById('admin-panel-box').style.display = 'none';
+            document.getElementById('adminUser').value = '';
+            document.getElementById('adminPass').value = '';
+            showToast("Logged out");
+        }
+
+        function renderAdminTable() {
+            const submissions = JSON.parse(localStorage.getItem('riasec_submissions') || '[]');
+            const search = document.getElementById('adminSearch').value.toLowerCase();
+            const tbody = document.getElementById('admin-table-body');
+            tbody.innerHTML = '';
+
+            const filtered = submissions.filter(s => 
+                s.user.name.toLowerCase().includes(search) || s.code.toLowerCase().includes(search)
+            );
+
+            document.getElementById('stat-total').innerText = submissions.length;
+            if (submissions.length > 0) {
+                const codes = submissions.map(s => s.code);
+                const mostFreq = codes.sort((a,b) => codes.filter(v => v===a).length - codes.filter(v => v===b).length).pop();
+                document.getElementById('stat-topcode').innerText = mostFreq || '---';
+            } else {
+                document.getElementById('stat-topcode').innerText = '---';
+            }
+
+            filtered.forEach(sub => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><input type="checkbox" class="record-checkbox" value="${sub.id}"></td>
+                    <td>${sub.user.name}</td>
+                    <td>${sub.user.age}</td>
+                    <td><strong style="color: var(--accent-cyan);">${sub.code}</strong></td>
+                    <td>${sub.date}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function toggleSelectAll(master) {
+            document.querySelectorAll('.record-checkbox').forEach(cb => cb.checked = master.checked);
+        }
+
+        function deleteSelectedRecords() {
+            const checked = Array.from(document.querySelectorAll('.record-checkbox:checked')).map(cb => Number(cb.value));
+            if (checked.length === 0) return showToast("No records selected");
+
+            let submissions = JSON.parse(localStorage.getItem('riasec_submissions') || '[]');
+            submissions = submissions.filter(s => !checked.includes(s.id));
+            localStorage.setItem('riasec_submissions', JSON.stringify(submissions));
+            
+            syncToGoogleSheet("delete", { ids: checked });
+            renderAdminTable();
+            showToast("Selected records deleted");
+        }
+
+        function deleteAllRecords() {
+            if (confirm("Are you sure you want to delete ALL stored records?")) {
+                localStorage.removeItem('riasec_submissions');
+                syncToGoogleSheet("deleteAll", {});
+                renderAdminTable();
+                showToast("All records cleared");
+            }
+        }
+
+        async function syncToGoogleSheet(action, dataPayload) {
+            if (!GOOGLE_SCRIPT_URL) return;
+            try {
+                await fetch(GOOGLE_SCRIPT_URL, {
+                    method: "POST",
+                    mode: "no-cors",
+                    headers: { "Content-Type": "text/plain;charset=utf-8" },
+                    body: JSON.stringify({ action, ...dataPayload })
+                });
+            } catch (err) {
+                console.warn("Google Sheet sync error:", err);
+            }
+        }
+
+        async function syncFromGoogleSheet(notify = false) {
+            if (!GOOGLE_SCRIPT_URL) return;
+            const statusEl = document.getElementById('sheet-sync-status');
+            if (statusEl) statusEl.innerText = "Cloud Sync: Syncing...";
+
+            try {
+                const res = await fetch(GOOGLE_SCRIPT_URL);
+                const rows = await res.json();
+
+                if (Array.isArray(rows)) {
+                    const mapped = rows.map(r => ({
+                        id: Number(r.ID) || Date.now(),
+                        user: {
+                            name: String(r.Name || "Anonymous"),
+                            age: Number(r.Age) || 0
+                        },
+                        code: String(r.Code || "---"),
+                        careers: String(r.Careers || ""),
+                        date: String(r.Date || ""),
+                        scores: {
+                            R: Number(r.R) || 0,
+                            I: Number(r.I) || 0,
+                            A: Number(r.A) || 0,
+                            S: Number(r.S) || 0,
+                            E: Number(r.E) || 0,
+                            C: Number(r.C) || 0
+                        }
+                    }));
+
+                    localStorage.setItem('riasec_submissions', JSON.stringify(mapped));
+                    renderAdminTable();
+                    if (statusEl) statusEl.innerText = `Cloud Sync: Connected (${mapped.length} rows)`;
+                    if (notify) showToast("Synced with Google Sheet");
+                }
+            } catch (err) {
+                if (statusEl) statusEl.innerText = "Cloud Sync: Offline / Local Mode";
+                if (notify) showToast("Could not reach Google Sheet (using local data)");
+            }
+        }
+
+        function exportAdminXLSX() {
+            const submissions = JSON.parse(localStorage.getItem('riasec_submissions') || '[]');
+            if (submissions.length === 0) return showToast("No data to export!");
+
+            const rows = [
+                ["ID", "Name", "Age", "Code", "Careers", "Date", "R", "I", "A", "S", "E", "C"]
+            ];
+
+            submissions.forEach(s => {
+                let careersText = s.careers;
+                if (!careersText && s.code) {
+                    const cats = s.code.split('');
+                    const cObj = freshGradClusterMatrix[cats[0] + cats[1]] || freshGradClusterMatrix[cats[1] + cats[0]] || freshGradClusterMatrix["IC"];
+                    careersText = cObj.roles.join(', ');
+                }
+                rows.push([
+                    s.id, s.user.name, s.user.age, s.code, careersText || '', s.date,
+                    s.scores.R, s.scores.I, s.scores.A, s.scores.S, s.scores.E, s.scores.C
+                ]);
+            });
+
+            const ws = XLSX.utils.aoa_to_sheet(rows);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Submissions");
+            XLSX.writeFile(wb, `RIASEC_Master_Export_${Date.now()}.xlsx`);
+        }
+
+        async function shareOrDownload() {
+            const element = document.getElementById('capture-card');
+            try {
+                const canvas = await html2canvas(element, { backgroundColor: '#1e1b4b' });
+                canvas.toBlob(async (blob) => {
+                    const file = new File([blob], 'riasec-result.png', { type: 'image/png' });
+                    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                        await navigator.share({
+                            files: [file],
+                            title: 'My RIASEC Result',
+                            text: `Check out my Holland Code result!`
+                        });
+                    } else {
+                        const a = document.createElement('a');
+                        a.href = URL.createObjectURL(blob);
+                        a.download = 'riasec-result.png';
+                        a.click();
+                    }
+                });
+            } catch (err) {
+                showToast('Capture failed. Take standard screenshot.');
+            }
+        }
+    </script>
+</body>
+</html>
