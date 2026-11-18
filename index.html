@@ -55,6 +55,12 @@
             padding: 12px;
         }
 
+        @media (min-width: 860px) {
+            body {
+                padding: 24px;
+            }
+        }
+
         .ambient-glow {
             position: fixed;
             width: 350px;
@@ -64,13 +70,20 @@
             z-index: 0;
             pointer-events: none;
         }
+        @media (min-width: 860px) {
+            .ambient-glow {
+                width: 520px;
+                height: 520px;
+                filter: blur(130px);
+            }
+        }
         .glow-1 { top: -60px; left: -60px; background: rgba(56, 189, 248, 0.35); }
         .glow-2 { bottom: -60px; right: -60px; background: rgba(244, 114, 182, 0.35); }
 
         .app-container {
-            width: min(92vw, 720px);
+            width: min(94vw, 1040px);
             height: 100%;
-            max-height: 850px;
+            max-height: 820px;
             background: var(--glass-bg);
             backdrop-filter: blur(24px);
             -webkit-backdrop-filter: blur(24px);
@@ -82,6 +95,7 @@
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            transition: width 0.25s ease, max-height 0.25s ease;
         }
 
         #preloader {
@@ -128,10 +142,17 @@
         .view-section {
             display: none;
             padding: 24px;
-            padding-bottom: calc(var(--nav-height) + 20px);
+            padding-bottom: calc(var(--nav-height) + 32px);
             height: 100%;
             overflow-y: auto;
             animation: fadeIn 0.4s ease-in-out forwards;
+        }
+
+        @media (min-width: 860px) {
+            .view-section {
+                padding: 32px 38px;
+                padding-bottom: calc(var(--nav-height) + 38px);
+            }
         }
 
         .view-section.active { 
@@ -142,7 +163,7 @@
         /* Fixed header/footer layout specifically for Information view */
         #view-info {
             overflow-y: hidden;
-            padding-bottom: calc(var(--nav-height) + 14px);
+            padding-bottom: calc(var(--nav-height) + 26px);
         }
 
         .info-header {
@@ -222,23 +243,32 @@
             border: 1px solid var(--accent-cyan);
             border-radius: 16px;
             padding: 14px 18px;
-            margin-top: 20px;
+            margin-top: 16px;
             display: flex;
             align-items: center;
             justify-content: space-between;
             gap: 12px;
         }
 
-        .menu-grid {
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 8px;
-            margin-top: 16px;
+        /* Wide-screen top bar on Home View */
+        .home-top-bar {
+            display: flex;
+            flex-direction: column;
         }
 
-        @media (min-width: 480px) {
+        @media (min-width: 860px) {
+            .home-top-bar {
+                flex-direction: row;
+                align-items: center;
+                justify-content: space-between;
+                gap: 20px;
+            }
+        }
+
+        @media (min-width: 860px) {
             .menu-grid {
-                grid-template-columns: repeat(5, minmax(0, 1fr));
+                margin-top: 0;
+                gap: 10px;
             }
         }
 
@@ -254,10 +284,84 @@
             min-width: 0;
         }
 
+        @media (min-width: 860px) {
+            .menu-tile {
+                padding: 12px 10px;
+                min-height: 70px;
+                font-size: 0.78rem;
+            }
+        }
+
         .menu-tile i {
             width: 20px;
             height: 20px;
             flex-shrink: 0;
+        }
+
+        /* Wide-screen top bar on Home View */
+        .home-top-bar {
+            display: flex;
+            flex-direction: column;
+        }
+
+        @media (min-width: 860px) {
+            .home-top-bar {
+                flex-direction: row;
+                align-items: center;
+                justify-content: space-between;
+                gap: 20px;
+            }
+            .home-top-bar .menu-grid {
+                flex-shrink: 0;
+                width: 410px;
+            }
+        }
+
+        /* Wide-screen split layout for Video + RIASEC Overview */
+        .home-intro-card {
+            background: rgba(0, 0, 0, 0.25);
+            border: 1px solid var(--glass-border);
+            border-radius: 18px;
+            padding: 16px;
+            margin-top: 16px;
+        }
+
+        @media (min-width: 860px) {
+            .home-intro-card {
+                display: grid;
+                grid-template-columns: 1.05fr 1fr;
+                gap: 24px;
+                align-items: center;
+                padding: 22px;
+                margin-top: 20px;
+                flex: 1;
+                min-height: 0;
+            }
+            .home-video-col {
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+            }
+            .home-video-col .video-fallback-bar {
+                margin-bottom: 0;
+            }
+        }
+
+        /* Centered comfortable width for Registration & Test on wide screens */
+        .centered-narrow-box {
+            width: 100%;
+            max-width: 520px;
+            margin: 0 auto;
+        }
+
+        .test-stage-box {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            width: 100%;
+            max-width: 660px;
+            margin: 0 auto;
         }
 
         .input-group {
@@ -302,6 +406,14 @@
             flex-direction: column;
             gap: 12px;
             width: 100%;
+        }
+
+        @media (min-width: 680px) {
+            .options-list {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 14px;
+            }
         }
 
         .option-btn {
@@ -362,93 +474,95 @@
             grid-template-columns: 1fr;
             gap: 20px;
         }
-        @media (min-width: 600px) {
-            .result-layout { grid-template-columns: 1fr 1fr; align-items: center; }
+        @media (min-width: 640px) {
+            .result-layout { grid-template-columns: 1fr 1.15fr; align-items: center; gap: 28px; }
         }
 
         .chart-container {
             position: relative;
             width: 100%;
-            max-width: 320px;
+            max-width: 340px;
             margin: 0 auto;
             aspect-ratio: 1;
         }
 
-        .admin-stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-
-        .stat-card {
-            background: rgba(0, 0, 0, 0.25);
-            border: 1px solid var(--glass-border);
-            padding: 12px;
-            border-radius: 14px;
-            text-align: center;
-        }
-        .stat-card .val { font-size: 1.4rem; font-weight: 800; color: var(--accent-cyan); }
-        .stat-card .lbl { font-size: 0.75rem; color: var(--text-muted); }
-
-        .table-wrapper {
-            overflow-x: auto;
-            border-radius: 14px;
-            border: 1px solid var(--glass-border);
-            background: rgba(0, 0, 0, 0.25);
-            margin-top: 10px;
-            max-height: 280px;
-            overflow-y: auto;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            text-align: left;
-            font-size: 0.85rem;
-        }
-
-        th, td {
-            padding: 10px 12px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            white-space: nowrap;
-        }
-
-        th { background: rgba(255, 255, 255, 0.08); font-weight: 700; color: var(--accent-cyan); }
-
         .app-nav {
             position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: var(--nav-height);
+            bottom: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: min(calc(100% - 24px), 520px);
+            height: 58px;
+            padding: 5px;
             display: flex;
-            justify-content: space-around;
+            justify-content: space-between;
             align-items: center;
-            background: rgba(15, 23, 42, 0.85);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border-top: 1px solid var(--glass-border);
+            gap: 3px;
+            background: rgba(15, 23, 42, 0.72);
+            backdrop-filter: blur(22px);
+            -webkit-backdrop-filter: blur(22px);
+            border: 1px solid rgba(255, 255, 255, 0.24);
+            border-radius: 999px;
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.15);
             z-index: 100;
         }
         .nav-item {
+            flex: 1;
+            min-width: 0;
+            height: 100%;
+            border-radius: 999px;
             color: var(--text-muted);
-            font-size: 0.75rem;
+            font-size: 0.68rem;
+            font-weight: 600;
             cursor: pointer;
             text-align: center;
-            transition: color 0.2s;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
             user-select: none;
             display: flex;
             flex-direction: column;
             align-items: center;
+            justify-content: center;
             gap: 2px;
+            padding: 0 2px;
         }
-        .nav-item.active { color: var(--accent-cyan); font-weight: bold; }
-        .nav-item i { width: 20px; height: 20px; }
+        @media (min-width: 480px) {
+            .nav-item {
+                font-size: 0.73rem;
+            }
+        }
+        .nav-item:hover {
+            color: #ffffff;
+            background: rgba(255, 255, 255, 0.06);
+        }
+        .nav-item.active {
+            color: #ffffff;
+            font-weight: 700;
+            background: linear-gradient(135deg, rgba(56, 189, 248, 0.28), rgba(192, 132, 252, 0.28));
+            border: 1px solid rgba(56, 189, 248, 0.45);
+            box-shadow: 0 4px 12px rgba(56, 189, 248, 0.2);
+        }
+        .nav-item.active i {
+            color: var(--accent-cyan);
+        }
+        .nav-item i { width: 18px; height: 18px; }
 
         /* Information Clean Pagination Bar */
         .info-page { display: none; font-size: 0.88rem; color: var(--text-muted); line-height: 1.6; }
         .info-page.active { display: block; }
+
+        @media (min-width: 720px) {
+            .info-page.active {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 14px;
+            }
+            .info-page.active .info-card {
+                margin-bottom: 0;
+            }
+            .info-page.active .info-card.span-full {
+                grid-column: 1 / -1;
+            }
+        }
         
         .info-pagination {
             display: flex;
@@ -469,27 +583,58 @@
             background: rgba(0, 0, 0, 0.25);
             border: 1px solid var(--glass-border);
             border-radius: 14px;
-            padding: 14px;
+            padding: 16px;
             margin-bottom: 12px;
         }
-        .info-card h4 { color: var(--accent-cyan); margin-bottom: 6px; font-size: 0.95rem; }
+        .info-card h4 { color: var(--accent-cyan); margin-bottom: 6px; font-size: 0.96rem; }
 
         /* Contact Action Cards */
         .contact-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: 12px;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 14px;
             margin-top: 20px;
         }
 
-        /* Main Page Intro & Video Card */
-        .home-intro-card {
-            background: rgba(0, 0, 0, 0.25);
-            border: 1px solid var(--glass-border);
-            border-radius: 18px;
-            padding: 16px;
-            margin-top: 16px;
+        @media (min-width: 720px) {
+            .contact-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
         }
+
+        /* Brand Header (Inline Logo + Title) */
+        .brand-header {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 14px;
+            margin-top: 4px;
+            padding-left: 6px;
+            text-align: left;
+        }
+        @media (min-width: 860px) {
+            .brand-header {
+                margin-top: 0;
+                padding-left: 0;
+            }
+        }
+        .brand-header .logo-loader {
+            width: 54px;
+            height: 54px;
+            border-radius: 16px;
+            flex-shrink: 0;
+            margin: 0;
+        }
+        .brand-header-text h1 {
+            font-size: 1.45rem;
+            line-height: 1.2;
+        }
+        .brand-header-text .subtitle {
+            font-size: 0.84rem;
+            margin-top: 3px;
+        }
+
+        /* Main Page Intro & Video Card */
         .video-wrapper {
             position: relative;
             width: 100%;
@@ -580,7 +725,7 @@
             text-decoration: underline;
         }
         .home-intro-header {
-            font-size: 0.95rem;
+            font-size: 1rem;
             font-weight: 700;
             color: #ffffff;
             margin-bottom: 6px;
@@ -589,7 +734,7 @@
             gap: 6px;
         }
         .home-intro-desc {
-            font-size: 0.85rem;
+            font-size: 0.86rem;
             color: #e2e8f0;
             line-height: 1.6;
             text-align: left;
@@ -601,47 +746,53 @@
             gap: 8px;
             margin-bottom: 12px;
         }
-        @media (min-width: 520px) {
+        @media (min-width: 520px) and (max-width: 859px) {
             .riasec-pills-grid {
                 grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        @media (min-width: 860px) {
+            .riasec-pills-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
             }
         }
         .riasec-pill {
             background: rgba(255, 255, 255, 0.07);
             border: 1px solid rgba(255, 255, 255, 0.14);
             border-radius: 10px;
-            padding: 7px 10px;
-            font-size: 0.78rem;
+            padding: 8px 10px;
+            font-size: 0.79rem;
             color: #f1f5f9;
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 7px;
         }
         .riasec-pill span.letter {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            width: 20px;
-            height: 20px;
+            width: 22px;
+            height: 22px;
             border-radius: 6px;
             background: rgba(56, 189, 248, 0.2);
             color: var(--accent-cyan);
             font-weight: 800;
-            font-size: 0.75rem;
+            font-size: 0.76rem;
             flex-shrink: 0;
         }
         .home-intro-footer {
-            font-size: 0.8rem;
+            font-size: 0.82rem;
             color: var(--text-muted);
             line-height: 1.5;
-            padding-top: 8px;
+            padding-top: 10px;
             border-top: 1px solid rgba(255, 255, 255, 0.1);
         }
         .contact-card {
             background: rgba(255, 255, 255, 0.08);
             border: 1px solid var(--glass-border);
             border-radius: 16px;
-            padding: 16px;
+            padding: 20px 16px;
             text-align: center;
             text-decoration: none;
             color: #fff;
@@ -699,96 +850,92 @@
 
         <!-- VIEW: MAIN MENU -->
         <div id="view-menu" class="view-section active">
-            <div style="text-align: center; margin-top: 6px;">
-                <div class="logo-loader" style="margin: 0 auto 12px auto; width: 64px; height: 64px;">
-                    <img src="https://kadowisudaku.com/wp-content/uploads/2016/11/Logo-Universitas-Teknologi-Yogyakarta-UTY.png" alt="Logo Universitas Teknologi Yogyakarta" onerror="this.onerror=null; this.src='https://placehold.co/64x64/0f172a/38bdf8?text=UTY';">
+            <div class="home-top-bar">
+                <div class="brand-header">
+                    <div class="logo-loader">
+                        <img src="https://kadowisudaku.com/wp-content/uploads/2016/11/Logo-Universitas-Teknologi-Yogyakarta-UTY.png" alt="Logo Universitas Teknologi Yogyakarta" onerror="this.onerror=null; this.src='https://placehold.co/54x54/0f172a/38bdf8?text=UTY';">
+                    </div>
+                    <div class="brand-header-text">
+                        <h1>RIASEC Assessment</h1>
+                        <p class="subtitle">Discover your vocational personality & career path</p>
+                    </div>
                 </div>
-                <h1>RIASEC Assessment</h1>
-                <p class="subtitle">Discover your vocational personality & career path</p>
-            </div>
 
-            <div class="menu-grid">
-                <button class="btn btn-primary menu-tile" onclick="openRegistration()">
-                    <i data-lucide="play-circle"></i><span>Start</span>
-                </button>
-                <button class="btn menu-tile" onclick="showView('view-info')">
-                    <i data-lucide="help-circle"></i><span>Info</span>
-                </button>
-                <button class="btn menu-tile" onclick="showView('view-contact')">
-                    <i data-lucide="mail"></i><span>Contact</span>
-                </button>
-                <button class="btn menu-tile" onclick="showView('view-references')">
-                    <i data-lucide="book-open"></i><span>Refs</span>
-                </button>
-                <button class="btn menu-tile" onclick="showView('view-about')">
-                    <i data-lucide="info"></i><span>About</span>
+                <button class="btn btn-primary" onclick="openRegistration()" style="margin-top: 14px; width: auto; align-self: flex-start;">
+                    <i data-lucide="play-circle"></i> Start Assessment
                 </button>
             </div>
 
             <div id="resume-banner-container"></div>
 
             <div class="home-intro-card">
-                <div class="video-wrapper" id="riasec-video-container" onclick="playRiasecVideo()">
-                    <div class="video-thumbnail-box">
-                        <img src="https://i.ytimg.com/vi/POBx_s-X6cQ/hqdefault.jpg" alt="Holland Codes simply explained (RIASEC Model)">
-                        <div class="video-play-overlay">
-                            <div class="video-play-btn">
-                                <i data-lucide="play" style="width: 24px; height: 24px; fill: #ffffff; margin-left: 2px;"></i>
+                <div class="home-video-col">
+                    <div class="video-wrapper" id="riasec-video-container" onclick="playRiasecVideo()">
+                        <div class="video-thumbnail-box">
+                            <img src="https://i.ytimg.com/vi/POBx_s-X6cQ/hqdefault.jpg" alt="Holland Codes simply explained (RIASEC Model)">
+                            <div class="video-play-overlay">
+                                <div class="video-play-btn">
+                                    <i data-lucide="play" style="width: 24px; height: 24px; fill: #ffffff; margin-left: 2px;"></i>
+                                </div>
+                            </div>
+                            <div class="video-caption-badge">
+                                <span>Holland Codes Simply Explained (RIASEC)</span>
+                                <span style="background: rgba(0,0,0,0.6); padding: 2px 7px; border-radius: 6px; font-size: 0.7rem;">Watch Video</span>
                             </div>
                         </div>
-                        <div class="video-caption-badge">
-                            <span>Holland Codes Simply Explained (RIASEC)</span>
-                            <span style="background: rgba(0,0,0,0.6); padding: 2px 7px; border-radius: 6px; font-size: 0.7rem;">Watch Video</span>
-                        </div>
+                    </div>
+                    <div class="video-fallback-bar">
+                        <a href="https://www.youtube.com/watch?v=POBx_s-X6cQ" target="_blank" rel="noopener noreferrer" class="video-fallback-link">
+                            Watch directly on YouTube <i data-lucide="external-link" style="width: 12px; height: 12px;"></i>
+                        </a>
                     </div>
                 </div>
-                <div class="video-fallback-bar">
-                    <a href="https://www.youtube.com/watch?v=POBx_s-X6cQ" target="_blank" rel="noopener noreferrer" class="video-fallback-link">
-                        Watch directly on YouTube <i data-lucide="external-link" style="width: 12px; height: 12px;"></i>
-                    </a>
-                </div>
 
-                <div class="home-intro-header">
-                    <i data-lucide="compass" style="width: 17px; height: 17px; color: var(--accent-cyan);"></i>
-                    <span>What is RIASEC?</span>
-                </div>
-                <p class="home-intro-desc">
-                    Developed by psychologist <strong>Dr. John Holland</strong>, the RIASEC model categorizes vocational interests into six distinct personality dimensions:
-                </p>
+                <div class="home-text-col">
+                    <div class="home-intro-header">
+                        <i data-lucide="compass" style="width: 17px; height: 17px; color: var(--accent-cyan);"></i>
+                        <span>What is RIASEC?</span>
+                    </div>
+                    <p class="home-intro-desc">
+                        Developed by psychologist <strong>Dr. John Holland</strong>, the RIASEC model categorizes vocational interests into six distinct personality dimensions:
+                    </p>
 
-                <div class="riasec-pills-grid">
-                    <div class="riasec-pill"><span class="letter">R</span> <span><strong>Realistic</strong> · Doers</span></div>
-                    <div class="riasec-pill"><span class="letter">I</span> <span><strong>Investigative</strong> · Thinkers</span></div>
-                    <div class="riasec-pill"><span class="letter">A</span> <span><strong>Artistic</strong> · Creators</span></div>
-                    <div class="riasec-pill"><span class="letter">S</span> <span><strong>Social</strong> · Helpers</span></div>
-                    <div class="riasec-pill"><span class="letter">E</span> <span><strong>Enterprising</strong> · Persuaders</span></div>
-                    <div class="riasec-pill"><span class="letter">C</span> <span><strong>Conventional</strong> · Organizers</span></div>
-                </div>
+                    <div class="riasec-pills-grid">
+                        <div class="riasec-pill"><span class="letter">R</span> <span><strong>Realistic</strong> · Doers</span></div>
+                        <div class="riasec-pill"><span class="letter">I</span> <span><strong>Investigative</strong> · Thinkers</span></div>
+                        <div class="riasec-pill"><span class="letter">A</span> <span><strong>Artistic</strong> · Creators</span></div>
+                        <div class="riasec-pill"><span class="letter">S</span> <span><strong>Social</strong> · Helpers</span></div>
+                        <div class="riasec-pill"><span class="letter">E</span> <span><strong>Enterprising</strong> · Persuaders</span></div>
+                        <div class="riasec-pill"><span class="letter">C</span> <span><strong>Conventional</strong> · Organizers</span></div>
+                    </div>
 
-                <p class="home-intro-footer">
-                    Answer 12 quick statements to uncover your top 3-letter <strong>Holland Code</strong> and matching entry-level career paths.
-                </p>
+                    <p class="home-intro-footer">
+                        Answer 12 quick statements to uncover your top 3-letter <strong>Holland Code</strong> and matching entry-level career paths.
+                    </p>
+                </div>
             </div>
         </div>
 
         <!-- VIEW: REGISTRATION -->
         <div id="view-register" class="view-section">
-            <h2>User Registration</h2>
-            <p class="subtitle">Enter details to begin assessment</p>
-            <form id="regForm" onsubmit="startTest(event)" style="margin-top: 25px;">
-                <div class="input-group">
-                    <label>Full Name</label>
-                    <input type="text" id="userName" class="input-field" placeholder="e.g. Jane Doe" required>
-                </div>
-                <div class="input-group">
-                    <label>Age</label>
-                    <input type="number" id="userAge" class="input-field" placeholder="e.g. 24" required min="10" max="100">
-                </div>
-                <button type="submit" class="btn btn-primary" style="margin-top: 20px;">
-                    Begin Test <i data-lucide="arrow-right"></i>
-                </button>
-                <button type="button" class="btn" style="margin-top: 10px;" onclick="showView('view-menu')">Cancel</button>
-            </form>
+            <div class="centered-narrow-box">
+                <h2>User Registration</h2>
+                <p class="subtitle">Enter details to begin assessment</p>
+                <form id="regForm" onsubmit="startTest(event)" style="margin-top: 25px;">
+                    <div class="input-group">
+                        <label>Full Name</label>
+                        <input type="text" id="userName" class="input-field" placeholder="e.g. Jane Doe" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Age</label>
+                        <input type="number" id="userAge" class="input-field" placeholder="e.g. 24" required min="10" max="100">
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="margin-top: 20px;">
+                        Begin Test <i data-lucide="arrow-right"></i>
+                    </button>
+                    <button type="button" class="btn" style="margin-top: 10px;" onclick="showView('view-menu')">Cancel</button>
+                </form>
+            </div>
         </div>
 
         <!-- VIEW: TEST ENGINE -->
@@ -802,20 +949,20 @@
                 <div id="progress-fill" class="progress-fill"></div>
             </div>
 
-            <div style="flex: 1; display: flex; flex-direction: column; justify-content: center;">
-                <h3 id="question-text" style="margin-bottom: 25px; line-height: 1.4; font-size: 1.15rem; text-align: center; color: #ffffff;">Question text goes here...</h3>
+            <div class="test-stage-box">
+                <h3 id="question-text" style="margin-bottom: 28px; line-height: 1.45; font-size: 1.25rem; text-align: center; color: #ffffff;">Question text goes here...</h3>
                 <div id="options-container" class="options-list"></div>
             </div>
         </div>
 
         <!-- VIEW: RESULTS HUB -->
         <div id="view-results" class="view-section">
-            <div id="capture-card" style="padding: 10px; border-radius: 16px;">
+            <div id="capture-card" style="padding: 12px; border-radius: 16px;">
                 <h2 style="text-align: center;">Your Holland Code</h2>
                 <p class="subtitle" id="user-display" style="text-align: center;">Results for Anonymous</p>
                 
                 <div style="text-align: center; margin: 10px 0;">
-                    <span id="primary-code" style="font-size: 2.5rem; font-weight: 800; background: linear-gradient(135deg, var(--accent-cyan), var(--accent-pink)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">---</span>
+                    <span id="primary-code" style="font-size: 2.6rem; font-weight: 800; background: linear-gradient(135deg, var(--accent-cyan), var(--accent-pink)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">---</span>
                 </div>
 
                 <div class="result-layout">
@@ -823,91 +970,18 @@
                         <canvas id="riasecRadarChart"></canvas>
                     </div>
 
-                    <div style="background: rgba(0,0,0,0.2); padding: 14px; border-radius: 14px; border: 1px solid var(--glass-border);">
-                        <h4 style="color: var(--accent-cyan); margin-bottom: 6px; font-size: 0.95rem;">Entry-Level Fresh Grad Paths</h4>
-                        <div id="recommendation-text" style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.5;">---</div>
+                    <div style="background: rgba(0,0,0,0.2); padding: 18px; border-radius: 16px; border: 1px solid var(--glass-border);">
+                        <h4 style="color: var(--accent-cyan); margin-bottom: 8px; font-size: 1rem;">Entry-Level Fresh Grad Paths</h4>
+                        <div id="recommendation-text" style="font-size: 0.86rem; color: var(--text-muted); line-height: 1.55;">---</div>
                     </div>
                 </div>
             </div>
 
-            <div style="display: flex; gap: 10px; margin-top: 15px;">
+            <div style="display: flex; gap: 12px; margin-top: 18px; max-width: 560px; width: 100%; margin-left: auto; margin-right: auto;">
                 <button class="btn btn-primary" onclick="shareOrDownload()">
                     <i data-lucide="share-2"></i> Share / Save Image
                 </button>
                 <button class="btn" onclick="showView('view-menu')">Return Home</button>
-            </div>
-        </div>
-
-        <!-- VIEW: ADMIN PANEL -->
-        <div id="view-admin" class="view-section">
-            <div id="admin-login-box">
-                <h2>Admin Authentication</h2>
-                <p class="subtitle">Access management dashboard</p>
-                <form onsubmit="handleAdminLogin(event)" style="margin-top: 20px;">
-                    <div class="input-group">
-                        <label>Username</label>
-                        <input type="text" id="adminUser" class="input-field" placeholder="Username" required>
-                    </div>
-                    <div class="input-group">
-                        <label>Password</label>
-                        <input type="password" id="adminPass" class="input-field" placeholder="Password" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary" style="margin-top: 15px;">
-                        <i data-lucide="lock"></i> Log In
-                    </button>
-                </form>
-            </div>
-
-            <div id="admin-panel-box" style="display: none;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                    <h2>Admin Dashboard</h2>
-                    <button class="btn btn-sm" onclick="handleAdminLogout()">Logout</button>
-                </div>
-
-                <div class="admin-stats">
-                    <div class="stat-card">
-                        <div class="val" id="stat-total">0</div>
-                        <div class="lbl">Total Takers</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="val" id="stat-topcode">---</div>
-                        <div class="lbl">Top Code</div>
-                    </div>
-                </div>
-
-                <div style="display: flex; gap: 8px; margin-bottom: 10px;">
-                    <input type="text" id="adminSearch" class="input-field" placeholder="Search by name or code..." oninput="renderAdminTable()" style="padding: 8px 12px; font-size: 0.85rem;">
-                    <button class="btn btn-primary btn-sm" onclick="exportAdminXLSX()">
-                        <i data-lucide="download"></i> Export XLSX
-                    </button>
-                </div>
-
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                    <span id="sheet-sync-status" style="font-size: 0.75rem; color: var(--text-muted);">Cloud Sync: Ready</span>
-                    <button class="btn btn-sm" onclick="syncFromGoogleSheet(true)" style="padding: 5px 10px; font-size: 0.75rem;">
-                        <i data-lucide="refresh-cw" style="width: 14px; height: 14px;"></i> Sync Sheet
-                    </button>
-                </div>
-
-                <div class="table-wrapper">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th><input type="checkbox" id="selectAll" onchange="toggleSelectAll(this)"></th>
-                                <th>Name</th>
-                                <th>Age</th>
-                                <th>Code</th>
-                                <th>Date</th>
-                            </tr>
-                        </thead>
-                        <tbody id="admin-table-body"></tbody>
-                    </table>
-                </div>
-
-                <div style="display: flex; gap: 10px; margin-top: 12px;">
-                    <button class="btn btn-danger btn-sm" onclick="deleteSelectedRecords()">Delete Selected</button>
-                    <button class="btn btn-danger btn-sm" onclick="deleteAllRecords()">Delete All</button>
-                </div>
             </div>
         </div>
 
@@ -938,7 +1012,7 @@
                     </div>
                 </div>
 
-                <!-- Page 2: R & I Types -->
+                <!-- Page 2: R, I & A Types -->
                 <div id="info-p2" class="info-page">
                     <div class="info-card">
                         <h4>Realistic (R) - "The Doers"</h4>
@@ -948,22 +1022,18 @@
                         <h4>Investigative (I) - "The Thinkers"</h4>
                         <p>Driven by analytical, intellectual, and scientific inquiry. Prefers observing, researching, understanding complex theories, and solving abstract problems.</p>
                     </div>
-                </div>
-
-                <!-- Page 3: A & S Types -->
-                <div id="info-p3" class="info-page">
                     <div class="info-card">
                         <h4>Artistic (A) - "The Creators"</h4>
                         <p>Thrives in flexible, open environments allowing imaginative expression, design, writing, or performance. Highly values originality and independence.</p>
                     </div>
+                </div>
+
+                <!-- Page 3: S, E & C Types -->
+                <div id="info-p3" class="info-page">
                     <div class="info-card">
                         <h4>Social (S) - "The Helpers"</h4>
                         <p>Empathetic individuals dedicated to teaching, counseling, healing, and fostering human connection. Prefers interpersonal cooperation over machine work.</p>
                     </div>
-                </div>
-
-                <!-- Page 4: E & C Types -->
-                <div id="info-p4" class="info-page">
                     <div class="info-card">
                         <h4>Enterprising (E) - "The Persuaders"</h4>
                         <p>Ambitious leaders naturally suited for management, sales, business growth, and public influence. Energized by setting goals and persuading others.</p>
@@ -981,7 +1051,7 @@
                     <button id="btn-info-prev" class="btn btn-sm" onclick="changeInfoPage(-1)" style="opacity: 0.4; pointer-events: none;">
                         <i data-lucide="chevron-left"></i> Previous
                     </button>
-                    <span id="info-page-num" class="info-page-indicator">Page 1 of 4</span>
+                    <span id="info-page-num" class="info-page-indicator">Page 1 of 3</span>
                     <button id="btn-info-next" class="btn btn-sm btn-primary" onclick="changeInfoPage(1)">
                         Next <i data-lucide="chevron-right"></i>
                     </button>
@@ -1034,29 +1104,32 @@
                 </a>
             </div>
 
-            <button class="btn" style="margin-top: auto;" onclick="showView('view-menu')">Back to Menu</button>
+            <button class="btn" style="margin-top: auto; max-width: 320px; align-self: center;" onclick="showView('view-menu')">Back to Menu</button>
         </div>
 
         <!-- VIEW: REFERENCES -->
         <div id="view-references" class="view-section">
             <h2>References</h2>
             <p class="subtitle">Academic Foundations</p>
-            <div style="margin-top: 20px; font-size: 0.88rem; color: var(--text-muted); line-height: 1.6;">
+            <div style="margin-top: 20px; font-size: 0.92rem; color: var(--text-muted); line-height: 1.7; max-width: 720px;">
                 <p>• Holland, J. L. (1997). <em>Making vocational choices: A theory of vocational personalities and work environments</em> (3rd ed.). Psychological Assessment Resources.</p><br>
                 <p>• Nauta, M. M. (2010). The development, evolution, and status of Holland's theory of vocational personalities: Reflection and future directions. <em>Journal of Career Development</em>, 37(1), 11-22.</p>
             </div>
-            <button class="btn" style="margin-top: auto;" onclick="showView('view-menu')">Back</button>
+            <button class="btn" style="margin-top: auto; max-width: 320px; align-self: center;" onclick="showView('view-menu')">Back</button>
         </div>
 
         <!-- VIEW: ABOUT -->
         <div id="view-about" class="view-section">
             <h2>About</h2>
             <p class="subtitle">App Information</p>
-            <p style="margin-top: 20px; color: var(--text-muted); line-height: 1.6;">RIASEC Assessment App v2.7<br>Single-file client application featuring glassmorphism design, Lucide icons, paginated information view, and direct social contact cards.</p>
-            <button class="btn" style="margin-top: auto;" onclick="showView('view-menu')">Back</button>
+            <div style="margin-top: 20px; color: var(--text-muted); line-height: 1.7; max-width: 720px; font-size: 0.92rem;">
+                <p><strong>RIASEC Assessment App v3.0</strong></p>
+                <p style="margin-top: 8px;">Single-file client application featuring Liquid Glassmorphism design, 12-Cluster Fresh Graduate Career Matrix, Chart.js radar visualization, local resume capability, and background Google Sheets synchronization.</p>
+            </div>
+            <button class="btn" style="margin-top: auto; max-width: 320px; align-self: center;" onclick="showView('view-menu')">Back to Menu</button>
         </div>
 
-        <!-- Pinned Navigation Bar -->
+        <!-- Pinned Navigation Pill -->
         <nav class="app-nav">
             <div class="nav-item active" id="nav-home" onclick="showView('view-menu')">
                 <i data-lucide="layout-grid"></i><span>Home</span>
@@ -1064,8 +1137,14 @@
             <div class="nav-item" id="nav-test" onclick="openRegistration()">
                 <i data-lucide="clipboard-list"></i><span>Test</span>
             </div>
-            <div class="nav-item" id="nav-admin" onclick="showView('view-admin')">
-                <i data-lucide="shield-check"></i><span>Admin</span>
+            <div class="nav-item" id="nav-info" onclick="showView('view-info')">
+                <i data-lucide="help-circle"></i><span>Info</span>
+            </div>
+            <div class="nav-item" id="nav-contact" onclick="showView('view-contact')">
+                <i data-lucide="mail"></i><span>Contact</span>
+            </div>
+            <div class="nav-item" id="nav-refs" onclick="showView('view-references')">
+                <i data-lucide="book-open"></i><span>Refs</span>
             </div>
             <div class="nav-item" id="nav-about" onclick="showView('view-about')">
                 <i data-lucide="info"></i><span>About</span>
@@ -1121,12 +1200,9 @@
         let userData = { name: '', age: 0 };
         let scores = { R: 0, I: 0, A: 0, S: 0, E: 0, C: 0 };
         let radarChart = null;
-        let isAdminLoggedIn = false;
         let currentInfoPage = 1;
-        const totalInfoPages = 4;
+        const totalInfoPages = 3;
 
-        const ADMIN_USER = "admin";
-        const ADMIN_PASS = "admin123";
         const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbya4LMPiMD-zY8hO5IxRQwCGoIgAfHBxmU7WL1vDHXrHWqd7oDecRvjDww9mJG1eoKS/exec";
 
         window.addEventListener('load', () => {
@@ -1175,13 +1251,11 @@
             document.getElementById(viewId).classList.add('active');
 
             if (viewId === 'view-menu') document.getElementById('nav-home').classList.add('active');
-            if (viewId === 'view-register' || viewId === 'view-test') document.getElementById('nav-test').classList.add('active');
-            if (viewId === 'view-admin') document.getElementById('nav-admin').classList.add('active');
+            if (viewId === 'view-register' || viewId === 'view-test' || viewId === 'view-results') document.getElementById('nav-test').classList.add('active');
+            if (viewId === 'view-info') document.getElementById('nav-info').classList.add('active');
+            if (viewId === 'view-contact') document.getElementById('nav-contact').classList.add('active');
+            if (viewId === 'view-references') document.getElementById('nav-refs').classList.add('active');
             if (viewId === 'view-about') document.getElementById('nav-about').classList.add('active');
-
-            if (viewId === 'view-admin' && isAdminLoggedIn) {
-                renderAdminTable();
-            }
         }
 
         function changeInfoPage(direction) {
@@ -1436,90 +1510,6 @@
             requestAnimationFrame(animateOutward);
         }
 
-        function handleAdminLogin(e) {
-            e.preventDefault();
-            const u = document.getElementById('adminUser').value.trim();
-            const p = document.getElementById('adminPass').value.trim();
-
-            if (u === ADMIN_USER && p === ADMIN_PASS) {
-                isAdminLoggedIn = true;
-                document.getElementById('admin-login-box').style.display = 'none';
-                document.getElementById('admin-panel-box').style.display = 'block';
-                renderAdminTable();
-                syncFromGoogleSheet(false);
-                showToast("Logged in successfully");
-            } else {
-                showToast("Invalid credentials!");
-            }
-        }
-
-        function handleAdminLogout() {
-            isAdminLoggedIn = false;
-            document.getElementById('admin-login-box').style.display = 'block';
-            document.getElementById('admin-panel-box').style.display = 'none';
-            document.getElementById('adminUser').value = '';
-            document.getElementById('adminPass').value = '';
-            showToast("Logged out");
-        }
-
-        function renderAdminTable() {
-            const submissions = JSON.parse(localStorage.getItem('riasec_submissions') || '[]');
-            const search = document.getElementById('adminSearch').value.toLowerCase();
-            const tbody = document.getElementById('admin-table-body');
-            tbody.innerHTML = '';
-
-            const filtered = submissions.filter(s => 
-                s.user.name.toLowerCase().includes(search) || s.code.toLowerCase().includes(search)
-            );
-
-            document.getElementById('stat-total').innerText = submissions.length;
-            if (submissions.length > 0) {
-                const codes = submissions.map(s => s.code);
-                const mostFreq = codes.sort((a,b) => codes.filter(v => v===a).length - codes.filter(v => v===b).length).pop();
-                document.getElementById('stat-topcode').innerText = mostFreq || '---';
-            } else {
-                document.getElementById('stat-topcode').innerText = '---';
-            }
-
-            filtered.forEach(sub => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td><input type="checkbox" class="record-checkbox" value="${sub.id}"></td>
-                    <td>${sub.user.name}</td>
-                    <td>${sub.user.age}</td>
-                    <td><strong style="color: var(--accent-cyan);">${sub.code}</strong></td>
-                    <td>${sub.date}</td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        function toggleSelectAll(master) {
-            document.querySelectorAll('.record-checkbox').forEach(cb => cb.checked = master.checked);
-        }
-
-        function deleteSelectedRecords() {
-            const checked = Array.from(document.querySelectorAll('.record-checkbox:checked')).map(cb => Number(cb.value));
-            if (checked.length === 0) return showToast("No records selected");
-
-            let submissions = JSON.parse(localStorage.getItem('riasec_submissions') || '[]');
-            submissions = submissions.filter(s => !checked.includes(s.id));
-            localStorage.setItem('riasec_submissions', JSON.stringify(submissions));
-            
-            syncToGoogleSheet("delete", { ids: checked });
-            renderAdminTable();
-            showToast("Selected records deleted");
-        }
-
-        function deleteAllRecords() {
-            if (confirm("Are you sure you want to delete ALL stored records?")) {
-                localStorage.removeItem('riasec_submissions');
-                syncToGoogleSheet("deleteAll", {});
-                renderAdminTable();
-                showToast("All records cleared");
-            }
-        }
-
         async function syncToGoogleSheet(action, dataPayload) {
             if (!GOOGLE_SCRIPT_URL) return;
             try {
@@ -1532,73 +1522,6 @@
             } catch (err) {
                 console.warn("Google Sheet sync error:", err);
             }
-        }
-
-        async function syncFromGoogleSheet(notify = false) {
-            if (!GOOGLE_SCRIPT_URL) return;
-            const statusEl = document.getElementById('sheet-sync-status');
-            if (statusEl) statusEl.innerText = "Cloud Sync: Syncing...";
-
-            try {
-                const res = await fetch(GOOGLE_SCRIPT_URL);
-                const rows = await res.json();
-
-                if (Array.isArray(rows)) {
-                    const mapped = rows.map(r => ({
-                        id: Number(r.ID) || Date.now(),
-                        user: {
-                            name: String(r.Name || "Anonymous"),
-                            age: Number(r.Age) || 0
-                        },
-                        code: String(r.Code || "---"),
-                        careers: String(r.Careers || ""),
-                        date: String(r.Date || ""),
-                        scores: {
-                            R: Number(r.R) || 0,
-                            I: Number(r.I) || 0,
-                            A: Number(r.A) || 0,
-                            S: Number(r.S) || 0,
-                            E: Number(r.E) || 0,
-                            C: Number(r.C) || 0
-                        }
-                    }));
-
-                    localStorage.setItem('riasec_submissions', JSON.stringify(mapped));
-                    renderAdminTable();
-                    if (statusEl) statusEl.innerText = `Cloud Sync: Connected (${mapped.length} rows)`;
-                    if (notify) showToast("Synced with Google Sheet");
-                }
-            } catch (err) {
-                if (statusEl) statusEl.innerText = "Cloud Sync: Offline / Local Mode";
-                if (notify) showToast("Could not reach Google Sheet (using local data)");
-            }
-        }
-
-        function exportAdminXLSX() {
-            const submissions = JSON.parse(localStorage.getItem('riasec_submissions') || '[]');
-            if (submissions.length === 0) return showToast("No data to export!");
-
-            const rows = [
-                ["ID", "Name", "Age", "Code", "Careers", "Date", "R", "I", "A", "S", "E", "C"]
-            ];
-
-            submissions.forEach(s => {
-                let careersText = s.careers;
-                if (!careersText && s.code) {
-                    const cats = s.code.split('');
-                    const cObj = freshGradClusterMatrix[cats[0] + cats[1]] || freshGradClusterMatrix[cats[1] + cats[0]] || freshGradClusterMatrix["IC"];
-                    careersText = cObj.roles.join(', ');
-                }
-                rows.push([
-                    s.id, s.user.name, s.user.age, s.code, careersText || '', s.date,
-                    s.scores.R, s.scores.I, s.scores.A, s.scores.S, s.scores.E, s.scores.C
-                ]);
-            });
-
-            const ws = XLSX.utils.aoa_to_sheet(rows);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Submissions");
-            XLSX.writeFile(wb, `RIASEC_Master_Export_${Date.now()}.xlsx`);
         }
 
         async function shareOrDownload() {
